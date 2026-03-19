@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+.venv
+
+# Build
+dist
+build
+
+# IDEs and Editors
+.idea
+.vscode
+*.swp
+*.swo
+
+# System
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Git
+.git
+
+# Python
+__pycache__
+*.py[cod]
