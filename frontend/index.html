@@ -218,6 +218,94 @@
     .ui-btn:active {
         transform: translateY(1px);
     }
+    #color-panel {
+        position: fixed;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10000;
+        background: rgba(20, 20, 30, 0.9);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        padding: 15px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    }
+    #color-panel-header {
+        color: #00e5ff;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 12px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 8px;
+    }
+    .color-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    .color-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    .color-btn:hover {
+        transform: scale(1.15);
+        box-shadow: 0 0 12px currentColor;
+    }
+    .color-btn.active {
+        border-color: #fff;
+        box-shadow: 0 0 15px currentColor, inset 0 0 8px rgba(255,255,255,0.3);
+    }
+    .color-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .color-btn.active::after {
+        opacity: 1;
+    }
+    #custom-color-wrapper {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    #custom-color-input {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: transparent;
+    }
+    #custom-color-input::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+    #custom-color-input::-webkit-color-swatch {
+        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    #custom-color-label {
+        color: #aaa;
+        font-size: 12px;
+    }
     </style>
     <!-- Three.js -->
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
@@ -247,6 +335,24 @@
 
     <!-- Video element for MediaPipe (hidden or small preview) -->
     <video class="input_video" playsinline style="display: none;"></video>
+    
+    <div id="color-panel">
+        <div id="color-panel-header">粒子颜色</div>
+        <div class="color-grid">
+            <div class="color-btn active" data-color="#00ffff" style="background: #00ffff;"></div>
+            <div class="color-btn" data-color="#ff00ff" style="background: #ff00ff;"></div>
+            <div class="color-btn" data-color="#ffff00" style="background: #ffff00;"></div>
+            <div class="color-btn" data-color="#ff3333" style="background: #ff3333;"></div>
+            <div class="color-btn" data-color="#33ff33" style="background: #33ff33;"></div>
+            <div class="color-btn" data-color="#3366ff" style="background: #3366ff;"></div>
+            <div class="color-btn" data-color="#ff9900" style="background: #ff9900;"></div>
+            <div class="color-btn" data-color="#ffffff" style="background: #ffffff;"></div>
+        </div>
+        <div id="custom-color-wrapper">
+            <input type="color" id="custom-color-input" value="#00ffff">
+            <span id="custom-color-label">自定义颜色</span>
+        </div>
+    </div>
     
     <script>
     const ShapeGenerator = {
@@ -549,21 +655,27 @@
             this.targetScale = 1.0;
             this.init();
         }
-        getTexture() {
+        getTexture(colorHex = '#00ffff') {
             const canvas = document.createElement('canvas');
             canvas.width = 32;
             canvas.height = 32;
             const ctx = canvas.getContext('2d');
             const grad = ctx.createRadialGradient(16,16,0, 16,16,16);
             grad.addColorStop(0, 'rgba(255,255,255,1)');
-            grad.addColorStop(0.2, 'rgba(0,255,255,1)');
-            grad.addColorStop(0.5, 'rgba(0,100,100,0.5)');
+            grad.addColorStop(0.2, colorHex + 'ff');
+            grad.addColorStop(0.5, colorHex + '80');
             grad.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = grad;
             ctx.fillRect(0,0,32,32);
             const texture = new THREE.Texture(canvas);
             texture.needsUpdate = true;
             return texture;
+        }
+        setColor(colorHex) {
+            if (!/^#[0-9A-Fa-f]{6}$/.test(colorHex)) return;
+            this.material.color.set(colorHex);
+            this.material.map = this.getTexture(colorHex);
+            this.material.needsUpdate = true;
         }
         init() {
             for(let i=0; i<this.count*3; i++) {
@@ -870,6 +982,7 @@
             }
         );
         handTracker.start();
+        setupColorPicker();
         animate();
         window.addEventListener('resize', onWindowResize, false);
     }
@@ -877,6 +990,28 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    function setupColorPicker() {
+        const colorBtns = document.querySelectorAll('.color-btn');
+        const customInput = document.getElementById('custom-color-input');
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                colorBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const color = btn.dataset.color;
+                if (particles && color) {
+                    particles.setColor(color);
+                    customInput.value = color;
+                }
+            });
+        });
+        customInput.addEventListener('input', (e) => {
+            const color = e.target.value;
+            colorBtns.forEach(b => b.classList.remove('active'));
+            if (particles && color) {
+                particles.setColor(color);
+            }
+        });
     }
     function animate(time) {
         requestAnimationFrame(animate);
