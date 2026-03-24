@@ -1,0 +1,235 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+#loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #0ff;
+  transition: opacity 0.5s;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(0, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #0ff;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+#ui-layer {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: white;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.status {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px #0ff;
+}
+
+.instruction {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 80vw;
+}
+
+.badge {
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  padding: 5px 10px;
+  border-radius: 15px;
+  backdrop-filter: blur(5px);
+}
+
+.fps-counter {
+  position: absolute;
+  top: 0;
+  right: -90vw;
+  font-family: monospace;
+  color: #0ff;
+}
+
+@media (max-width: 600px) {
+  .status {
+    font-size: 18px;
+  }
+  .instruction {
+    font-size: 12px;
+  }
+  .badge {
+    padding: 3px 8px;
+  }
+}
+
+#ui-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.ui-toast {
+  background: rgba(20, 20, 30, 0.95);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+  min-width: 200px;
+  text-align: center;
+}
+
+.ui-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ui-toast-info { border-left: 4px solid #00e5ff; }
+.ui-toast-success { border-left: 4px solid #00ff00; }
+.ui-toast-warning { border-left: 4px solid #ffcc00; }
+.ui-toast-error { border-left: 4px solid #ff3333; }
+
+.ui-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  z-index: 10001;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ui-modal-overlay.show {
+  opacity: 1;
+}
+
+.ui-modal {
+  background: rgba(20, 20, 30, 0.95);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  color: #fff;
+}
+
+.ui-modal.show {
+  transform: scale(1);
+}
+
+.ui-modal-header {
+  padding: 16px 20px;
+  font-size: 18px;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #00e5ff;
+}
+
+.ui-modal-body {
+  padding: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #e0e0e0;
+}
+
+.ui-modal-footer {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.ui-btn {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.ui-btn-default {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.ui-btn-default:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.ui-btn-primary {
+  background: linear-gradient(135deg, #00e5ff 0%, #0099cc 100%);
+  color: #000;
+  font-weight: bold;
+}
+
+.ui-btn-primary:hover {
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.ui-btn:active {
+  transform: translateY(1px);
+}
